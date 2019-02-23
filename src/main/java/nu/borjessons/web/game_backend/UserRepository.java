@@ -7,5 +7,7 @@ import nu.borjessons.web.game_backend.User;
 // CRUD refers Create, Read, Update, Delete
 
 public interface UserRepository extends CrudRepository<User, Integer> {
+	
+	User findByEmail(String email); 
 
 }

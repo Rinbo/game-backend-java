@@ -2,6 +2,8 @@ package nu.borjessons.web.game_backend;
 
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,14 +24,32 @@ public class UsersController {
 	public @ResponseBody Optional<User> addNewUser (@RequestBody User user)
 			 {		
 		User n = new User();
-		n.setName(user.getName());
-		n.setEmail(user.getEmail());
-		n.setPassword(user.getPassword());
+		n.setName(user.getName().trim());
+		n.setEmail(user.getEmail().trim());
+		n.setPassword(user.getPassword().trim());
 		Token tokenClass = new Token();
 		String token = tokenClass.generateToken(20);
 		n.setToken(token);
 		userRepository.save(n);
 		return userRepository.findById(n.getId());
+	}
+	
+	@PostMapping(path="/signin")
+	public @ResponseBody ResponseEntity<User> signInUser (@RequestBody User user) {
+		// Check if User exists
+		try {
+			userRepository.findByEmail(user.getEmail());
+		} catch (Exception e) {
+			return new ResponseEntity<User>(user, HttpStatus.NOT_FOUND);
+		}
+		// Check if password matches what is stored in database
+		User n = userRepository.findByEmail(user.getEmail());
+		if (n.getPassword().equals(user.getPassword().trim())) {
+			n.setToken(new Token().generateToken(20));
+			return new ResponseEntity<User>(n, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<User>(user, HttpStatus.UNAUTHORIZED);
+		}		
 	}
 
 	@GetMapping(path="/all")
