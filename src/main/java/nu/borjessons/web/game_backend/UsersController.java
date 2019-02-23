@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin
 @RestController
 @RequestMapping(path="/users") 
-public class MainController {
+public class UsersController {
 	@Autowired 
 	          
 	private UserRepository userRepository;
@@ -25,6 +25,9 @@ public class MainController {
 		n.setName(user.getName());
 		n.setEmail(user.getEmail());
 		n.setPassword(user.getPassword());
+		Token tokenClass = new Token();
+		String token = tokenClass.generateToken(20);
+		n.setToken(token);
 		userRepository.save(n);
 		return userRepository.findById(n.getId());
 	}
