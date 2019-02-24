@@ -5,6 +5,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @Entity // This tells Hibernate to make a table out of this class
 public class User {
     @Id
@@ -42,11 +45,13 @@ public class User {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-
+    
+	@JsonIgnore
 	public String getPassword() {
 		return password;
 	}
-
+	
+	@JsonProperty
 	public void setPassword(String password) {
 		this.password = password;
 	}
@@ -58,6 +63,9 @@ public class User {
 	public void setToken(String token) {
 		this.token = token;
 	}
-
+	
+	public boolean checkPassword(String password) {
+		return this.password.equals(password);
+	}
 
 }

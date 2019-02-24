@@ -1,5 +1,6 @@
 package nu.borjessons.web.game_backend;
 
+import java.util.ArrayList;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
 
 @CrossOrigin
 @RestController
@@ -44,7 +46,9 @@ public class UsersController {
 		}
 		// Check if password matches what is stored in database
 		User n = userRepository.findByEmail(user.getEmail());
-		if (n.getPassword().equals(user.getPassword().trim())) {
+		System.out.println(n.getPassword());
+		System.out.println(user.getPassword());
+		if (n.checkPassword(user.getPassword().trim())) {
 			n.setToken(new Token().generateToken(20));
 			return new ResponseEntity<User>(n, HttpStatus.OK);
 		} else {
@@ -53,9 +57,18 @@ public class UsersController {
 	}
 
 	@GetMapping(path="/all")
-	public @ResponseBody Iterable<User> getAllUsers() {
-		// This returns a JSON or XML with the users
-		return userRepository.findAll();
+	public @ResponseBody Iterable<PrunedUser> getAllUsers() {
+		// Get the users and send them back but remove password and token first
+		Iterable<User> userArray = userRepository.findAll();
+		ArrayList<PrunedUser> prunedUsersArray = new ArrayList<PrunedUser>();
+		for (User user : userArray) {
+			PrunedUser prunedUser = new PrunedUser();
+			prunedUser.setId(user.getId());
+			prunedUser.setEmail(user.getEmail());
+			prunedUser.setName(user.getName());
+			prunedUsersArray.add(prunedUser);			
+		}
+		return prunedUsersArray;
 	}
 	
 	@RequestMapping(path="/ping")
