@@ -8,13 +8,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import nu.borjessons.web.game_backend.exceptions.UserNotFoundException;
 import nu.borjessons.web.game_backend.helpers.Token;
 import nu.borjessons.web.game_backend.models.PrunedUser;
 import nu.borjessons.web.game_backend.models.User;
@@ -30,40 +33,40 @@ public class UsersController {
 	private UserRepository userRepository;
 	
 	@PostMapping(path="/add") 
-	public @ResponseBody ResponseEntity<User> addNewUser (@Valid @RequestBody User user)
+	public @ResponseBody ResponseEntity<User> addNewUser (@Valid @RequestBody User reqUser)
 			 {
-		User n = new User();
+		User newUser = new User();
 		try {
-			n.setName(user.getName().trim());
-			n.setEmail(user.getEmail().trim());
-			n.setPassword(user.getPassword().trim());
+			newUser.setName(reqUser.getName().trim());
+			newUser.setEmail(reqUser.getEmail().trim());
+			newUser.setPassword(reqUser.getPassword().trim());
 			Token tokenClass = new Token();
 			String token = tokenClass.generateToken(20);
-			n.setToken(token);
-			userRepository.save(n);
-			return new ResponseEntity<User>(n, HttpStatus.OK);		
+			newUser.setToken(token);
+			userRepository.save(newUser);
+			return new ResponseEntity<User>(newUser, HttpStatus.OK);		
 		} catch (Exception e) {
-			return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<User>(reqUser, HttpStatus.BAD_REQUEST);
 		}
 
 	}
 	
 	@PostMapping(path="/signin")
-	public @ResponseBody ResponseEntity<User> signInUser (@Valid @RequestBody User user) {
+	public @ResponseBody ResponseEntity<User> signInUser (@Valid @RequestBody User reqUser) {
 		// Check if User exists
 		try {
-			userRepository.findByEmail(user.getEmail());
+			userRepository.findByEmail(reqUser.getEmail());
 		} catch (Exception e) {
-			return new ResponseEntity<User>(user, HttpStatus.NOT_FOUND);
+			return new ResponseEntity<User>(reqUser, HttpStatus.NOT_FOUND);
 		}
 		
-		User n = userRepository.findByEmail(user.getEmail());
+		User storedUser = userRepository.findByEmail(reqUser.getEmail());
 		// Check if password matches what is stored in database
-		if (n.checkPassword(user.getPassword().trim())) {
-			n.setToken(new Token().generateToken(20));
-			return new ResponseEntity<User>(n, HttpStatus.OK);
+		if (storedUser.checkPassword(reqUser.getPassword().trim())) {
+			storedUser.setToken(new Token().generateToken(20));
+			return new ResponseEntity<User>(storedUser, HttpStatus.OK);
 		} else {
-			return new ResponseEntity<User>(user, HttpStatus.UNAUTHORIZED);
+			return new ResponseEntity<User>(reqUser, HttpStatus.UNAUTHORIZED);
 		}		
 	}
 
@@ -82,8 +85,38 @@ public class UsersController {
 		return prunedUsersArray;
 	}
 	
+	@GetMapping(path="/{id}")
+	public ResponseEntity<User> retrieveUser(@PathVariable int id) {
+		
+		System.out.println(id);
+	    User storedUser = (User) userRepository.findById(id);
+
+	    if (!storedUser.isPresent()) {
+	      throw new UserNotFoundException("id-" + id);
+	    }
+	    return new ResponseEntity<User>(storedUser, HttpStatus.OK);
+	  }
+	
+	
 	@RequestMapping(path="/ping")
 	public String index() {
 		return "Pong";
 	}
+	
+	@DeleteMapping(path="/{id}") 
+	public ResponseEntity<User> deleteUser(@PathVariable int id) {
+	    userRepository.deleteById(id);
+	    return new ResponseEntity<User>(HttpStatus.OK);
+	}
+	
+	@GetMapping(path="/validateToken")
+	public @ResponseBody ResponseEntity<User> validateToken(String token) {
+		User storedUser = userRepository.findByToken(token);
+		if(!storedUser.isPresent()) {
+			return new ResponseEntity<User>(HttpStatus.UNAUTHORIZED);
+		}
+		storedUser.setToken(new Token().generateToken(20));
+		return new ResponseEntity<User>(storedUser, HttpStatus.OK);
+	}
+	
 }
