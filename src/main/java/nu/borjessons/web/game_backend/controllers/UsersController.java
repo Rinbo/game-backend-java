@@ -1,7 +1,9 @@
-package nu.borjessons.web.game_backend;
+package nu.borjessons.web.game_backend.controllers;
 
 import java.util.ArrayList;
-import java.util.Optional;
+
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import nu.borjessons.web.game_backend.helpers.Token;
+import nu.borjessons.web.game_backend.models.PrunedUser;
+import nu.borjessons.web.game_backend.models.User;
+import nu.borjessons.web.game_backend.models.UserRepository;
+
 
 @CrossOrigin
 @RestController
@@ -23,31 +30,35 @@ public class UsersController {
 	private UserRepository userRepository;
 	
 	@PostMapping(path="/add") 
-	public @ResponseBody Optional<User> addNewUser (@RequestBody User user)
-			 {		
+	public @ResponseBody ResponseEntity<User> addNewUser (@Valid @RequestBody User user)
+			 {
 		User n = new User();
-		n.setName(user.getName().trim());
-		n.setEmail(user.getEmail().trim());
-		n.setPassword(user.getPassword().trim());
-		Token tokenClass = new Token();
-		String token = tokenClass.generateToken(20);
-		n.setToken(token);
-		userRepository.save(n);
-		return userRepository.findById(n.getId());
+		try {
+			n.setName(user.getName().trim());
+			n.setEmail(user.getEmail().trim());
+			n.setPassword(user.getPassword().trim());
+			Token tokenClass = new Token();
+			String token = tokenClass.generateToken(20);
+			n.setToken(token);
+			userRepository.save(n);
+			return new ResponseEntity<User>(n, HttpStatus.OK);		
+		} catch (Exception e) {
+			return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
+		}
+
 	}
 	
 	@PostMapping(path="/signin")
-	public @ResponseBody ResponseEntity<User> signInUser (@RequestBody User user) {
+	public @ResponseBody ResponseEntity<User> signInUser (@Valid @RequestBody User user) {
 		// Check if User exists
 		try {
 			userRepository.findByEmail(user.getEmail());
 		} catch (Exception e) {
 			return new ResponseEntity<User>(user, HttpStatus.NOT_FOUND);
 		}
-		// Check if password matches what is stored in database
+		
 		User n = userRepository.findByEmail(user.getEmail());
-		System.out.println(n.getPassword());
-		System.out.println(user.getPassword());
+		// Check if password matches what is stored in database
 		if (n.checkPassword(user.getPassword().trim())) {
 			n.setToken(new Token().generateToken(20));
 			return new ResponseEntity<User>(n, HttpStatus.OK);

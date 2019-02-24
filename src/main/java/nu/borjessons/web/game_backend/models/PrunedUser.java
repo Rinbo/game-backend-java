@@ -1,4 +1,4 @@
-package nu.borjessons.web.game_backend;
+package nu.borjessons.web.game_backend.models;
 
 public class PrunedUser {
 	

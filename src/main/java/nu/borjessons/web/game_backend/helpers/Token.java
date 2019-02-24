@@ -1,4 +1,4 @@
-package nu.borjessons.web.game_backend;
+package nu.borjessons.web.game_backend.helpers;
 
 import org.apache.commons.lang3.RandomStringUtils;
 

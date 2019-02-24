@@ -1,9 +1,12 @@
-package nu.borjessons.web.game_backend;
+package nu.borjessons.web.game_backend.models;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -13,11 +16,14 @@ public class User {
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
     private Integer id;
-
+    
     private String name;
-
+    
+    @Email(message="You must provide a valid email address")
     private String email;
     
+    @NotNull
+    @Size(min=6, message="Password should have atleast 6 characters")
     private String password;
     
     private String token;
@@ -33,7 +39,7 @@ public class User {
 	public String getName() {
 		return name;
 	}
-
+		
 	public void setName(String name) {
 		this.name = name;
 	}

@@ -1,7 +1,7 @@
-package nu.borjessons.web.game_backend;
+package nu.borjessons.web.game_backend.models;
 
 import org.springframework.data.repository.CrudRepository;
-import nu.borjessons.web.game_backend.User;
+import nu.borjessons.web.game_backend.models.User;
 
 // This will be AUTO IMPLEMENTED by Spring into a Bean called userRepository
 
