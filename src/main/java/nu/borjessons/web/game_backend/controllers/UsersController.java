@@ -1,11 +1,11 @@
 package nu.borjessons.web.game_backend.controllers;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import nu.borjessons.web.game_backend.exceptions.UserNotFoundException;
+import nu.borjessons.web.game_backend.helpers.PasswordUtil;
 import nu.borjessons.web.game_backend.helpers.Token;
 import nu.borjessons.web.game_backend.models.PrunedUser;
 import nu.borjessons.web.game_backend.models.TokenObject;
@@ -41,7 +42,7 @@ public class UsersController {
 		try {
 			newUser.setName(reqUser.getName().trim());
 			newUser.setEmail(reqUser.getEmail().trim());
-			newUser.setPassword(reqUser.getPassword().trim());
+			newUser.setPassword(PasswordUtil.hashPassword(reqUser.getPassword().trim()));
 			Token tokenClass = new Token();
 			String token = tokenClass.generateToken(20);
 			newUser.setToken(token);
@@ -65,7 +66,7 @@ public class UsersController {
 	}
 	
 	@PostMapping(path="/signin")
-	public @ResponseBody ResponseEntity<User> signInUser (@Valid @RequestBody User reqUser) {
+	public @ResponseBody ResponseEntity<User> signInUser (@Valid @RequestBody User reqUser) throws NoSuchAlgorithmException {
 		// Check if User exists
 		try {
 			userRepository.findByEmail(reqUser.getEmail());
@@ -75,7 +76,7 @@ public class UsersController {
 		
 		User storedUser = userRepository.findByEmail(reqUser.getEmail());
 		// Check if password matches what is stored in database
-		if (storedUser.checkPassword(reqUser.getPassword().trim())) {
+		if (storedUser.checkPassword(PasswordUtil.hashPassword(reqUser.getPassword().trim()))) {
 			storedUser.setToken(new Token().generateToken(20));
 			userRepository.save(storedUser);
 			return new ResponseEntity<User>(storedUser, HttpStatus.OK);
