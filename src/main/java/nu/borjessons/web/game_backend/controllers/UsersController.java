@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import nu.borjessons.web.game_backend.exceptions.UnauthorizedUserException;
 import nu.borjessons.web.game_backend.exceptions.UserNotFoundException;
 import nu.borjessons.web.game_backend.helpers.PasswordUtil;
 import nu.borjessons.web.game_backend.helpers.Token;
@@ -64,6 +65,22 @@ public class UsersController {
 		userRepository.save(storedUser);
 		return new ResponseEntity<User>(storedUser, HttpStatus.OK);
 	}
+	
+	@DeleteMapping(path="/signout")
+	public @ResponseBody String signOutUser (@Valid @RequestBody User reqUser) {
+	    User storedUser = (User) userRepository.findByEmail(reqUser.getEmail());
+	    if (!storedUser.isPresent()) {	    	
+	      throw new UserNotFoundException("email-" + reqUser.getEmail());
+	    }
+	    if(storedUser.getToken().equals(reqUser.getToken())) {
+		    storedUser.setToken("");
+		    userRepository.save(storedUser);	    
+		    return "You were successfully signed out";
+	    } else {
+	    	throw new UnauthorizedUserException("Where is your token dude?");
+	    }
+	}
+	
 	
 	@PostMapping(path="/signin")
 	public @ResponseBody ResponseEntity<User> signInUser (@Valid @RequestBody User reqUser) throws NoSuchAlgorithmException {
