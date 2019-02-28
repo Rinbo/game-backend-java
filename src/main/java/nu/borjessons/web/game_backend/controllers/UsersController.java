@@ -66,12 +66,13 @@ public class UsersController {
 		return new ResponseEntity<User>(storedUser, HttpStatus.OK);
 	}
 	
-	@DeleteMapping(path="/signout")
-	public @ResponseBody String signOutUser (@Valid @RequestBody User reqUser) {
-	    User storedUser = (User) userRepository.findByEmail(reqUser.getEmail());
+	@PostMapping(path="/signout")
+	public @ResponseBody String signOutUser (@Valid @RequestBody PrunedUser reqUser) {
+		User storedUser = (User) userRepository.findByEmail(reqUser.getEmail());
 	    if (!storedUser.isPresent()) {	    	
 	      throw new UserNotFoundException("email-" + reqUser.getEmail());
 	    }
+	    
 	    if(storedUser.getToken().equals(reqUser.getToken())) {
 		    storedUser.setToken("");
 		    userRepository.save(storedUser);	    
@@ -79,8 +80,7 @@ public class UsersController {
 	    } else {
 	    	throw new UnauthorizedUserException("Where is your token dude?");
 	    }
-	}
-	
+	}	
 	
 	@PostMapping(path="/signin")
 	public @ResponseBody ResponseEntity<User> signInUser (@Valid @RequestBody User reqUser) throws NoSuchAlgorithmException {

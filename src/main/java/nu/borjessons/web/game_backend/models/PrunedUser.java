@@ -5,6 +5,7 @@ public class PrunedUser {
 	private String email;
 	private Integer Id;
 	private String name;
+	private String token;
 
 	public Integer getId() {
 		return Id;
@@ -28,6 +29,14 @@ public class PrunedUser {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getToken() {
+		return token;
+	}
+
+	public void setToken(String token) {
+		this.token = token;
 	}
 	
 }
