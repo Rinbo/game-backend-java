@@ -61,11 +61,13 @@ public class User {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-
+	
+	@JsonIgnore
 	public String getToken() {
 		return token;
 	}
-
+	
+	@JsonProperty
 	public void setToken(String token) {
 		this.token = token;
 	}
