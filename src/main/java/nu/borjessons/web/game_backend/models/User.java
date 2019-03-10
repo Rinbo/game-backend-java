@@ -11,7 +11,7 @@ import javax.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Entity // This tells Hibernate to make a table out of this class
+@Entity
 public class User {
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
