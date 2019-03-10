@@ -92,7 +92,7 @@ public class UsersController {
 	public @ResponseBody ResponseEntity<User> validateUser(@RequestHeader(value="token") String token) {
 		User storedUser = userRepository.findByToken(token);
 		if(!storedUser.isPresent()) {
-			return new ResponseEntity<User>(HttpStatus.UNAUTHORIZED);
+			throw new UnauthorizedUserException("Your token is invalid or missing");
 		}
 		storedUser.setToken(new Token().generateToken(20));
 		HttpHeaders headers = setHeaders(storedUser);	
@@ -105,7 +105,7 @@ public class UsersController {
 	
 		User storedUser = (User) userRepository.findByToken(token);
 	    if (!storedUser.isPresent()) {	    	
-	      throw new UserNotFoundException("Your token is invalid");
+	      throw new UnauthorizedUserException("Your token is invalid or missing");
 	    }
 	    
 	    if(storedUser.getToken().equals(token)) {
@@ -113,7 +113,7 @@ public class UsersController {
 		    userRepository.save(storedUser);	    
 		    return "You were successfully signed out";
 	    } else {
-	    	throw new UnauthorizedUserException("Where is your token dude?");
+	    	throw new UnauthorizedUserException("Your token is invalid. Login again to refresh it");
 	    }
 	}	
 	
@@ -126,6 +126,7 @@ public class UsersController {
 		if(!storedUser.isPresent()) {
 			throw new UnauthorizedUserException("Invalid Token");
 		}
+		
 		storedUser.setToken(new Token().generateToken(20));
 		userRepository.save(storedUser);
 		
