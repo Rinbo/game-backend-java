@@ -31,6 +31,13 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
         request.getDescription(false));
     return new ResponseEntity<Object>(errorDetails, HttpStatus.NOT_FOUND);
   }
+  
+  @ExceptionHandler(UnauthorizedUserException.class)
+  public final ResponseEntity<Object> handleUnauthorizedUserException(UnauthorizedUserException ex, WebRequest request) {
+    ErrorDetails errorDetails = new ErrorDetails(new Date(), ex.getMessage(),
+        request.getDescription(false));
+    return new ResponseEntity<Object>(errorDetails, HttpStatus.UNAUTHORIZED);
+  }
 
   @Override
   protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,

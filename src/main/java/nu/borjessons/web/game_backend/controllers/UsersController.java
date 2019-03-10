@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,6 +26,7 @@ import nu.borjessons.web.game_backend.exceptions.UserExistsException;
 import nu.borjessons.web.game_backend.exceptions.UserNotFoundException;
 import nu.borjessons.web.game_backend.helpers.PasswordUtil;
 import nu.borjessons.web.game_backend.helpers.Token;
+import nu.borjessons.web.game_backend.models.LoginObject;
 import nu.borjessons.web.game_backend.models.PrunedUser;
 import nu.borjessons.web.game_backend.models.User;
 import nu.borjessons.web.game_backend.models.UserRepository;
@@ -61,26 +63,30 @@ public class UsersController {
 	}
 
 	@PostMapping(path="/signin")
-	public @ResponseBody ResponseEntity<User> signInUser (@Valid @RequestBody User reqUser) throws NoSuchAlgorithmException {
-		// Check if User exists		
-		try {
-			userRepository.findByEmail(reqUser.getEmail());
-		} catch (Exception e) {
-			return new ResponseEntity<User>(reqUser, HttpStatus.NOT_FOUND);
+	public @ResponseBody ResponseEntity<User> signInUser (@Valid @RequestBody LoginObject credentials) throws NoSuchAlgorithmException {
+				
+		String email = credentials.getEmail();
+		String password = credentials.getPassword();
+
+		// Check if User exists
+		if (userRepository.findByEmail(email) == null) {
+			throw new UserNotFoundException("We could not find a user matching that email address");
 		}
 		
-		User storedUser = userRepository.findByEmail(reqUser.getEmail());
+		User storedUser = userRepository.findByEmail(email);
 		
 		// Check if password matches what is stored in database
-		if (storedUser.checkPassword(PasswordUtil.hashPassword(reqUser.getPassword().trim()))) {
+		if (storedUser.checkPassword(PasswordUtil.hashPassword(password))) {
 			storedUser.setToken(new Token().generateToken(20));
 			userRepository.save(storedUser);
 			HttpHeaders headers = setHeaders(storedUser);	
 			return new ResponseEntity<User>(storedUser, headers, HttpStatus.OK);
 		} else {
-			return new ResponseEntity<User>(reqUser, HttpStatus.UNAUTHORIZED);
+			throw new UnauthorizedUserException("Wrong password");
 		}		
 	}
+	
+	// @RequestParam(value="email") String email, @RequestParam(value="password") String password
 	
 	@GetMapping(path="/validatetoken")
 	public @ResponseBody ResponseEntity<User> validateUser(@RequestHeader(value="token") String token) {
