@@ -38,5 +38,13 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
     ErrorDetails errorDetails = new ErrorDetails(new Date(), "Validation Failed",
         ex.getBindingResult().toString());
     return new ResponseEntity<Object>(errorDetails, HttpStatus.BAD_REQUEST);
-  } 
+  }
+  
+  @ExceptionHandler(UserExistsException.class)
+  public final ResponseEntity<Object> handleUserExistsException(UserExistsException ex, WebRequest request) {
+    ErrorDetails errorDetails = new ErrorDetails(new Date(), ex.getMessage(),
+        request.getDescription(false));
+    return new ResponseEntity<Object>(errorDetails, HttpStatus.BAD_REQUEST);
+  }
+
 }

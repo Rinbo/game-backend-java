@@ -17,6 +17,8 @@ public class User {
     @GeneratedValue(strategy=GenerationType.AUTO)
     private Integer id;
     
+    @NotNull
+    @Size(min=2, message="It would be nice if your name consisted of more than one letter")
     private String name;
     
     @Email(message="You must provide a valid email address")

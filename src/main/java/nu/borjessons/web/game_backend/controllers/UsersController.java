@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import nu.borjessons.web.game_backend.exceptions.UnauthorizedUserException;
+import nu.borjessons.web.game_backend.exceptions.UserExistsException;
 import nu.borjessons.web.game_backend.exceptions.UserNotFoundException;
 import nu.borjessons.web.game_backend.helpers.PasswordUtil;
 import nu.borjessons.web.game_backend.helpers.Token;
@@ -40,14 +41,17 @@ public class UsersController {
 	@PostMapping(path="/add") 
 	public @ResponseBody ResponseEntity<User> addNewUser (@Valid @RequestBody User reqUser)
 			 {
+		
+		if(userRepository.findByEmail(reqUser.getEmail()) != null) {			
+			throw new UserExistsException("That email already exists in the database");			
+		}
+		
 		User newUser = new User();
 		try {
 			newUser.setName(reqUser.getName().trim());
 			newUser.setEmail(reqUser.getEmail().trim());
-			newUser.setPassword(PasswordUtil.hashPassword(reqUser.getPassword().trim()));
-			Token tokenClass = new Token();
-			String token = tokenClass.generateToken(20);
-			newUser.setToken(token);
+			newUser.setPassword(PasswordUtil.hashPassword(reqUser.getPassword().trim()));			
+			newUser.setToken(new Token().generateToken(20));			
 			userRepository.save(newUser);
 			HttpHeaders headers = setHeaders(newUser);		    
 			return new ResponseEntity<User>(newUser, headers, HttpStatus.OK);		
