@@ -14,8 +14,7 @@ public class Highscore {
 		this.score = score;
 		this.name = name;
 		this.date = date;
-	}
-	
+	}	
 
 	@Id
     @GeneratedValue(strategy=GenerationType.AUTO)
@@ -26,7 +25,17 @@ public class Highscore {
 	private String name;
 	
 	private Timestamp date;
+	
+	public Highscore() {}
+	
+	public Integer getId() {
+		return id;
+	}
 
+	public void setId(Integer id) {
+		this.id = id;
+	}
+	
 	public Integer getScore() {
 		return score;
 	}

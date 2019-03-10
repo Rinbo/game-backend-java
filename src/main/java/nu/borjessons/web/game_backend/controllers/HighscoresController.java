@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import nu.borjessons.web.game_backend.exceptions.UnauthorizedUserException;
 import nu.borjessons.web.game_backend.helpers.Header;
-import nu.borjessons.web.game_backend.helpers.Token;
+import nu.borjessons.web.game_backend.helpers.ValidateToken;
 import nu.borjessons.web.game_backend.models.Highscore;
 import nu.borjessons.web.game_backend.models.HighscoreRepository;
 import nu.borjessons.web.game_backend.models.User;
@@ -28,23 +28,26 @@ import nu.borjessons.web.game_backend.models.UserRepository;
 @RestController
 @RequestMapping(path="/highscores")
 public class HighscoresController {
-	@Autowired
-	
-	private HighscoreRepository highscoreRepository;
-	private UserRepository userRepository;
+		
+	@Autowired HighscoreRepository highscoreRepository;
+	@Autowired UserRepository userRepository;
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@PutMapping(path="/update")
-	public @ResponseBody ResponseEntity updateHighscore(@RequestBody Integer score , @RequestHeader(value="token") String token) {
+	public @ResponseBody ResponseEntity updateHighscore(@RequestBody Highscore reqObject , @RequestHeader(value="token") String token) {
 		
-		User user = userRepository.findByToken(token);
+		User user = userRepository.findByToken(token);		
 		if (user == null) {
 			throw new UnauthorizedUserException("Your token is invalid or missing");
 		}
+		System.out.println(user.getEmail());
 		
-		user.setToken(new Token().generateToken(20));			
-		userRepository.save(user);
-		HttpHeaders headers = Header.setHeaders(user);
+		Integer score = reqObject.getScore();
+		
+		//user.setToken(new Token().generateToken(20));			
+		//userRepository.save(user);
+		//HttpHeaders headers = Header.setHeaders(user);
+		HttpHeaders headers = new HttpHeaders();
 		
 		
 		// @TODO Add score to users list of scores
@@ -72,17 +75,16 @@ public class HighscoresController {
 		}	
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@GetMapping(path="/all")
-	public @ResponseBody String updateHighscore(@RequestHeader(value="token") String token) {
+	public @ResponseBody ResponseEntity updateHighscore(@RequestHeader(value="token") String token) {
+		
 		User user = userRepository.findByToken(token);
-		if (user == null) {
-			throw new UnauthorizedUserException("Your token is invalid or missing");
-		}
+		User validUser = ValidateToken.validate(user, token);
+		userRepository.save(validUser);
+		HttpHeaders headers = Header.setHeaders(validUser);
 		
-		user.setToken(new Token().generateToken(20));			
-		userRepository.save(user);
-		HttpHeaders headers = Header.setHeaders(user);
-		
-		return "Placeholder...";
+		Iterable<Highscore> highscoreArray = highscoreRepository.findAll();
+		return new ResponseEntity(highscoreArray, headers, HttpStatus.OK);		
 	}
 }
