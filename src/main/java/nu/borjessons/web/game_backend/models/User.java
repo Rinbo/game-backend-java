@@ -27,7 +27,7 @@ public class User {
     @NotNull
     @Size(min=6, message="Password should have atleast 6 characters")
     private String password;
-    
+        
     private String token;
 
 	public Integer getId() {
