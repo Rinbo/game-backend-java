@@ -2,7 +2,6 @@ package nu.borjessons.web.game_backend.controllers;
 
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.HashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -83,7 +82,7 @@ public class HighscoresController {
 		userRepository.save(validUser);
 		HttpHeaders headers = Header.setHeaders(validUser);
 		
-		Iterable<Highscore> highscoreArray = highscoreRepository.findAll();
+		Iterable<Highscore> highscoreArray = highscoreRepository.findAllByOrderByScoreDesc();
 		return new ResponseEntity(highscoreArray, headers, HttpStatus.OK);		
 	}
 }
