@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import nu.borjessons.web.game_backend.exceptions.MethodArgumentNotValidException;
 import nu.borjessons.web.game_backend.helpers.Header;
@@ -42,9 +43,10 @@ public class HighscoresController {
 		Date now = new Date();
 		Timestamp date = new Timestamp(now.getTime());		
 		Integer score = reqObject.getScore();
-		
+		System.out.println(score);
 		if (score == null || score == 0) {
-			throw new MethodArgumentNotValidException("Score can't be null");
+			throw new ResponseStatusException(
+					HttpStatus.NOT_ACCEPTABLE, "Score can't be zero");
 		}		
 		
 		User user = userRepository.findByToken(token);			

@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import nu.borjessons.web.game_backend.exceptions.UnauthorizedUserException;
-import nu.borjessons.web.game_backend.exceptions.UserExistsException;
 import nu.borjessons.web.game_backend.exceptions.UserNotFoundException;
 import nu.borjessons.web.game_backend.helpers.Header;
 import nu.borjessons.web.game_backend.helpers.PasswordUtil;
@@ -45,11 +45,15 @@ public class UsersController {
 			 {
 		
 		if(userRepository.findByEmail(reqUser.getEmail()) != null) {			
-			throw new UserExistsException("That email already exists in the database");			
+			//throw new UserExistsException("That email already exists in the database");
+			throw new ResponseStatusException(
+					HttpStatus.BAD_REQUEST, "That Email is already taken");
+
 		}
 		
 		if(userRepository.findByName(reqUser.getName()) != null) {			
-			throw new UserExistsException("That name is taken");			
+			throw new ResponseStatusException(
+					HttpStatus.BAD_REQUEST, "That name is already taken");			
 		}
 		
 		User newUser = new User();
@@ -62,7 +66,8 @@ public class UsersController {
 			HttpHeaders headers = Header.setHeaders(newUser);		    
 			return new ResponseEntity<User>(newUser, headers, HttpStatus.OK);		
 		} catch (Exception e) {
-			return new ResponseEntity<User>(reqUser, HttpStatus.BAD_REQUEST);
+			throw new ResponseStatusException(
+					HttpStatus.INTERNAL_SERVER_ERROR, "That did not work :(. Try Again later");
 		}
 	}
 
@@ -74,7 +79,8 @@ public class UsersController {
 
 		// Check if User exists
 		if (userRepository.findByEmail(email) == null) {
-			throw new UserNotFoundException("We could not find a user matching that email address");
+			throw new ResponseStatusException(
+					HttpStatus.BAD_REQUEST, "We could not find a user matching that email address.");
 		}
 		
 		User storedUser = userRepository.findByEmail(email);
@@ -86,7 +92,8 @@ public class UsersController {
 			HttpHeaders headers = Header.setHeaders(storedUser);	
 			return new ResponseEntity<User>(storedUser, headers, HttpStatus.OK);
 		} else {
-			throw new UnauthorizedUserException("Wrong password");
+			throw new ResponseStatusException(
+					HttpStatus.UNAUTHORIZED, "Wrong password");
 		}		
 	}
 	
@@ -96,7 +103,8 @@ public class UsersController {
 	public @ResponseBody ResponseEntity<User> validateUser(@RequestHeader(value="token") String token) {
 		User storedUser = userRepository.findByToken(token);
 		if(!storedUser.isPresent()) {
-			throw new UnauthorizedUserException("Your token is invalid or missing");
+			throw new ResponseStatusException(
+					HttpStatus.BAD_REQUEST, "Unable to validate your token. Try logging in again.");
 		}
 		storedUser.setToken(new Token().generateToken(20));
 		HttpHeaders headers = Header.setHeaders(storedUser);	
@@ -109,7 +117,8 @@ public class UsersController {
 	
 		User storedUser = (User) userRepository.findByToken(token);
 	    if (!storedUser.isPresent()) {	    	
-	      throw new UnauthorizedUserException("Your token is invalid or missing");
+	    	throw new ResponseStatusException(
+					HttpStatus.BAD_REQUEST, "Your token is invalid or missing");
 	    }
 	    
 	    if(storedUser.getToken().equals(token)) {
@@ -117,7 +126,8 @@ public class UsersController {
 		    userRepository.save(storedUser);	    
 		    return "You were successfully signed out";
 	    } else {
-	    	throw new UnauthorizedUserException("Your token is invalid. Login again to refresh it");
+	    	throw new ResponseStatusException(
+					HttpStatus.UNAUTHORIZED, "Unable to validate token. Try logging in again.");
 	    }
 	}	
 	
@@ -128,7 +138,8 @@ public class UsersController {
 		
 		User storedUser = userRepository.findByToken(token);
 		if(!storedUser.isPresent()) {
-			throw new UnauthorizedUserException("Invalid Token");
+			throw new ResponseStatusException(
+					HttpStatus.UNAUTHORIZED, "Unable to validate token. Try logging in again.");
 		}
 		
 		storedUser.setToken(new Token().generateToken(20));
@@ -184,7 +195,8 @@ public class UsersController {
 	    }
 	    
 	    if(!storedUser.getToken().equals(token)) {
-	    	throw new UnauthorizedUserException("Your token is invalid");
+	    	throw new ResponseStatusException(
+					HttpStatus.UNAUTHORIZED, "Unable to validate token. Try logging in again.");
 	    }
 	    
 	    userRepository.deleteById(id);
