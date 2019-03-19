@@ -10,15 +10,27 @@ import javax.persistence.Id;
 @Entity
 public class AllScores {
 	
-	private Integer userId;
-	private Integer score;
-	private Timestamp date;
-
-	
 	public AllScores(Integer userId, Integer score, Timestamp date) {
 		this.userId = userId;
 		this.score = score;
 		this.date = date;
+	}
+	public AllScores() {};
+	
+	private Integer userId;
+	private Integer score;
+	private Timestamp date;
+
+	@Id
+    @GeneratedValue(strategy=GenerationType.AUTO)
+    private Integer id;
+	
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
 	}
 	
 	public Integer getUserId() {
@@ -45,7 +57,5 @@ public class AllScores {
 		this.date = date;
 	}
 
-	@Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
-    private Integer id;
+	
 }

@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import nu.borjessons.web.game_backend.exceptions.MethodArgumentNotValidException;
 import nu.borjessons.web.game_backend.helpers.Header;
 import nu.borjessons.web.game_backend.helpers.ValidateToken;
 import nu.borjessons.web.game_backend.models.AllScores;
@@ -34,7 +33,7 @@ public class HighscoresController {
 		
 	@Autowired HighscoreRepository highscoreRepository;
 	@Autowired UserRepository userRepository;
-	@Autowired AllScoresRepository allScoresRepository;
+	@Autowired AllScoresRepository allScoresRepository;	
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@PutMapping(path="/update")
@@ -77,14 +76,47 @@ public class HighscoresController {
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@GetMapping(path="/all")
-	public @ResponseBody ResponseEntity updateHighscore(@RequestHeader(value="token") String token) {
+	public @ResponseBody ResponseEntity getHighscores(@RequestHeader(value="token") String token) {
 		
 		User user = userRepository.findByToken(token);
+		if(user == null) {
+			throw new ResponseStatusException(
+				HttpStatus.NOT_FOUND, "Could not find user");
+		}
+		
 		User validUser = ValidateToken.validate(user, token);
+		if (validUser==null) {
+			throw new ResponseStatusException(
+					HttpStatus.UNAUTHORIZED, "Unable to validate your token");
+		}
+		
 		userRepository.save(validUser);
 		HttpHeaders headers = Header.setHeaders(validUser);
 		
 		Iterable<Highscore> highscoreArray = highscoreRepository.findAllByOrderByScoreDesc();
 		return new ResponseEntity(highscoreArray, headers, HttpStatus.OK);		
+	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@GetMapping(path="/user")
+	public @ResponseBody ResponseEntity getUserScores(@RequestHeader(value="token") String token) {
+		
+		User user = userRepository.findByToken(token);
+		if(user == null) {
+			throw new ResponseStatusException(
+				HttpStatus.NOT_FOUND, "Could not find user");
+		}
+		
+		User validUser = ValidateToken.validate(user, token);
+		if (validUser==null) {
+			throw new ResponseStatusException(
+					HttpStatus.UNAUTHORIZED, "Unable to validate your token");
+		}
+		
+		userRepository.save(validUser);
+		HttpHeaders headers = Header.setHeaders(validUser);
+		
+		Iterable<AllScores> userScoresArray = allScoresRepository.findByUserIdOrderByScoreDesc(validUser.getId());
+		return new ResponseEntity(userScoresArray, headers, HttpStatus.OK);		
 	}
 }
