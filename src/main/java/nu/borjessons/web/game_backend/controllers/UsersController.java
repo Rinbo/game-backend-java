@@ -31,120 +31,111 @@ import nu.borjessons.web.game_backend.models.PrunedUser;
 import nu.borjessons.web.game_backend.models.User;
 import nu.borjessons.web.game_backend.models.UserRepository;
 
-
 @CrossOrigin
 @RestController
-@RequestMapping(path="/users") 
+@RequestMapping(path = "/users")
 public class UsersController {
-	@Autowired 
-	          
-	private UserRepository userRepository;
-	
-	@PostMapping(path="/add") 
-	public @ResponseBody ResponseEntity<User> addNewUser (@Valid @RequestBody User reqUser)
-			 {
-		
-		if(userRepository.findByEmail(reqUser.getEmail()) != null) {			
-			//throw new UserExistsException("That email already exists in the database");
-			throw new ResponseStatusException(
-					HttpStatus.BAD_REQUEST, "That Email is already taken");
+	@Autowired
 
+	private UserRepository userRepository;
+
+	@PostMapping(path = "/add")
+	public @ResponseBody ResponseEntity<User> addNewUser(@Valid @RequestBody User reqUser) {
+
+		if (userRepository.findByEmail(reqUser.getEmail()) != null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "That Email is already taken");
 		}
-		
-		if(userRepository.findByName(reqUser.getName()) != null) {			
-			throw new ResponseStatusException(
-					HttpStatus.BAD_REQUEST, "That name is already taken");			
+
+		if (userRepository.findByName(reqUser.getName()) != null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "That name is already taken");
 		}
-		
+
 		User newUser = new User();
 		try {
 			newUser.setName(reqUser.getName().trim());
 			newUser.setEmail(reqUser.getEmail().trim());
-			newUser.setPassword(PasswordUtil.hashPassword(reqUser.getPassword().trim()));			
-			newUser.setToken(new Token().generateToken(20));			
+			newUser.setPassword(PasswordUtil.hashPassword(reqUser.getPassword().trim()));
+			newUser.setToken(new Token().generateToken(20));
 			userRepository.save(newUser);
-			HttpHeaders headers = Header.setHeaders(newUser);		    
-			return new ResponseEntity<User>(newUser, headers, HttpStatus.OK);		
+			HttpHeaders headers = Header.setHeaders(newUser);
+			return new ResponseEntity<User>(newUser, headers, HttpStatus.OK);
 		} catch (Exception e) {
-			throw new ResponseStatusException(
-					HttpStatus.INTERNAL_SERVER_ERROR, "That did not work :(. Try Again later");
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "That did not work :(. Try Again later");
 		}
 	}
 
-	@PostMapping(path="/signin")
-	public @ResponseBody ResponseEntity<User> signInUser (@Valid @RequestBody LoginObject credentials) throws NoSuchAlgorithmException {
-				
+	@PostMapping(path = "/signin")
+	public @ResponseBody ResponseEntity<User> signInUser(@Valid @RequestBody LoginObject credentials)
+			throws NoSuchAlgorithmException {
+
 		String email = credentials.getEmail();
 		String password = credentials.getPassword();
 
 		// Check if User exists
 		if (userRepository.findByEmail(email) == null) {
-			throw new ResponseStatusException(
-					HttpStatus.BAD_REQUEST, "We could not find a user matching that email address.");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"We could not find a user matching that email address.");
 		}
-		
+
 		User storedUser = userRepository.findByEmail(email);
-		
+
 		// Check if password matches what is stored in database
 		if (storedUser.checkPassword(PasswordUtil.hashPassword(password))) {
 			storedUser.setToken(new Token().generateToken(20));
 			userRepository.save(storedUser);
-			HttpHeaders headers = Header.setHeaders(storedUser);	
+			HttpHeaders headers = Header.setHeaders(storedUser);
 			return new ResponseEntity<User>(storedUser, headers, HttpStatus.OK);
 		} else {
-			throw new ResponseStatusException(
-					HttpStatus.UNAUTHORIZED, "Wrong password");
-		}		
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong password");
+		}
 	}
-	
-	// @RequestParam(value="email") String email, @RequestParam(value="password") String password
-	
-	@GetMapping(path="/validatetoken")
-	public @ResponseBody ResponseEntity<User> validateUser(@RequestHeader(value="token") String token) {
+
+	// @RequestParam(value="email") String email, @RequestParam(value="password")
+	// String password
+
+	@GetMapping(path = "/validatetoken")
+	public @ResponseBody ResponseEntity<User> validateUser(@RequestHeader(value = "token") String token) {
 		User storedUser = userRepository.findByToken(token);
-		if(!storedUser.isPresent()) {
-			throw new ResponseStatusException(
-					HttpStatus.BAD_REQUEST, "Unable to validate your token. Try logging in again.");
+		if (!storedUser.isPresent()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to validate your token. Try logging in again.");
 		}
 		storedUser.setToken(new Token().generateToken(20));
-		HttpHeaders headers = Header.setHeaders(storedUser);	
+		HttpHeaders headers = Header.setHeaders(storedUser);
 		userRepository.save(storedUser);
 		return new ResponseEntity<User>(storedUser, headers, HttpStatus.OK);
 	}
-	
-	@DeleteMapping(path="/signout")
-	public @ResponseBody String signOutUser (@RequestHeader(value="token") String token) {
-	
+
+	@DeleteMapping(path = "/signout")
+	public @ResponseBody String signOutUser(@RequestHeader(value = "token") String token) {
+
 		User storedUser = (User) userRepository.findByToken(token);
-	    if (!storedUser.isPresent()) {	    	
-	    	throw new ResponseStatusException(
-					HttpStatus.BAD_REQUEST, "Your token is invalid or missing");
-	    }
-	    
-	    if(storedUser.getToken().equals(token)) {
-		    storedUser.setToken("");
-		    userRepository.save(storedUser);	    
-		    return "You were successfully signed out";
-	    } else {
-	    	throw new ResponseStatusException(
-					HttpStatus.UNAUTHORIZED, "Unable to validate token. Try logging in again.");
-	    }
-	}	
-	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@GetMapping(path="/all")
-	public @ResponseBody ResponseEntity getAllUsers(@RequestHeader(value="token") String token) {
-		// Get the users and send them back but remove password and token first
-		
-		User storedUser = userRepository.findByToken(token);
-		if(!storedUser.isPresent()) {
-			throw new ResponseStatusException(
-					HttpStatus.UNAUTHORIZED, "Unable to validate token. Try logging in again.");
+		System.out.println(storedUser);
+		if (!storedUser.isPresent()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Your token is invalid or missing");
 		}
-		
+
+		if (storedUser.getToken().equals(token)) {
+			storedUser.setToken("");
+			userRepository.save(storedUser);
+			return "You were successfully signed out";
+		} else {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unable to validate token. Try logging in again.");
+		}
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@GetMapping(path = "/all")
+	public @ResponseBody ResponseEntity getAllUsers(@RequestHeader(value = "token") String token) {
+		// Get the users and send them back but remove password and token first
+
+		User storedUser = userRepository.findByToken(token);
+		if (!storedUser.isPresent()) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unable to validate token. Try logging in again.");
+		}
+
 		storedUser.setToken(new Token().generateToken(20));
 		userRepository.save(storedUser);
-		
+
 		Iterable<User> userArray = userRepository.findAll();
 		ArrayList<PrunedUser> prunedUsersArray = new ArrayList<PrunedUser>();
 		for (User user : userArray) {
@@ -152,55 +143,53 @@ public class UsersController {
 			prunedUser.setId(user.getId());
 			prunedUser.setEmail(user.getEmail());
 			prunedUser.setName(user.getName());
-			prunedUsersArray.add(prunedUser);			
+			prunedUsersArray.add(prunedUser);
 		}
-		
-		HttpHeaders headers = Header.setHeaders(storedUser);	
+
+		HttpHeaders headers = Header.setHeaders(storedUser);
 		return new ResponseEntity(prunedUsersArray, headers, HttpStatus.OK);
 	}
-	
-	@GetMapping(path="/{id}")
-	public ResponseEntity<User> retrieveUser(@PathVariable int id, @RequestHeader(value="token") String token) {	
-	    
+
+	@GetMapping(path = "/{id}")
+	public ResponseEntity<User> retrieveUser(@PathVariable int id, @RequestHeader(value = "token") String token) {
+
 		User storedUser = (User) userRepository.findById(id);
 
-	    if (!storedUser.isPresent()) {
-	    	throw new UserNotFoundException("id-" + id);
-	    }
-	    
-	    if(!storedUser.getToken().equals(token)) {
-	    	throw new UnauthorizedUserException("Your token is invalid");
-	    }
-	    
-	    storedUser.setToken(new Token().generateToken(20));	    
+		if (!storedUser.isPresent()) {
+			throw new UserNotFoundException("id-" + id);
+		}
+
+		if (!storedUser.getToken().equals(token)) {
+			throw new UnauthorizedUserException("Your token is invalid");
+		}
+
+		storedUser.setToken(new Token().generateToken(20));
 		userRepository.save(storedUser);
-		
-		HttpHeaders headers = Header.setHeaders(storedUser);	
-	    
-	    return new ResponseEntity<User>(storedUser, headers, HttpStatus.OK);
-	  }
-	
-	
-	@RequestMapping(path="/ping")
+
+		HttpHeaders headers = Header.setHeaders(storedUser);
+
+		return new ResponseEntity<User>(storedUser, headers, HttpStatus.OK);
+	}
+
+	@RequestMapping(path = "/ping")
 	public String index() {
 		return "Pong";
 	}
-	
-	@DeleteMapping(path="/{id}") 
-	public ResponseEntity<User> deleteUser(@PathVariable int id, @RequestHeader(value="token") String token) {
+
+	@DeleteMapping(path = "/{id}")
+	public ResponseEntity<User> deleteUser(@PathVariable int id, @RequestHeader(value = "token") String token) {
 		User storedUser = (User) userRepository.findById(id);
 
-	    if (!storedUser.isPresent()) {
-	    	throw new UserNotFoundException("id-" + id);
-	    }
-	    
-	    if(!storedUser.getToken().equals(token)) {
-	    	throw new ResponseStatusException(
-					HttpStatus.UNAUTHORIZED, "Unable to validate token. Try logging in again.");
-	    }
-	    
-	    userRepository.deleteById(id);
-	    return new ResponseEntity<User>(HttpStatus.OK);
+		if (!storedUser.isPresent()) {
+			throw new UserNotFoundException("id-" + id);
+		}
+
+		if (!storedUser.getToken().equals(token)) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unable to validate token. Try logging in again.");
+		}
+
+		userRepository.deleteById(id);
+		return new ResponseEntity<User>(HttpStatus.OK);
 	}
-	
+
 }

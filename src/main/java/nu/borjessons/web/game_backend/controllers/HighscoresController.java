@@ -28,95 +28,83 @@ import nu.borjessons.web.game_backend.models.UserRepository;
 
 @CrossOrigin
 @RestController
-@RequestMapping(path="/highscores")
+@RequestMapping(path = "/highscores")
 public class HighscoresController {
-		
-	@Autowired HighscoreRepository highscoreRepository;
-	@Autowired UserRepository userRepository;
-	@Autowired AllScoresRepository allScoresRepository;	
-	
+
+	@Autowired
+	HighscoreRepository highscoreRepository;
+	@Autowired
+	UserRepository userRepository;
+	@Autowired
+	AllScoresRepository allScoresRepository;
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@PutMapping(path="/update")
-	public @ResponseBody ResponseEntity updateScores(@RequestBody Highscore reqObject , @RequestHeader(value="token") String token) {
-		
+	@PutMapping(path = "/update")
+	public @ResponseBody ResponseEntity updateScores(@RequestBody Highscore reqObject,
+			@RequestHeader(value = "token") String token) {
+
 		Date now = new Date();
-		Timestamp date = new Timestamp(now.getTime());		
+		Timestamp date = new Timestamp(now.getTime());
+
 		Integer score = reqObject.getScore();
-		System.out.println(score);
-		if (score == null || score == 0) {
-			throw new ResponseStatusException(
-					HttpStatus.NOT_ACCEPTABLE, "Score can't be zero");
-		}		
-		
-		User user = userRepository.findByToken(token);			
+		if (score == null) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Null score indicates something went wrong. Try logging in again");
+		}
+
+		User user = userRepository.findByToken(token);
 		User validUser = ValidateToken.validate(user, token);
 		userRepository.save(validUser);
 		HttpHeaders headers = Header.setHeaders(validUser);
-		
+
 		allScoresRepository.save(new AllScores(validUser.getId(), score, date));
-					
+
 		String name = validUser.getName();
 		Highscore highscore = highscoreRepository.findByName(name);
-		
+
 		if (highscore != null) {
-			if(score > highscore.getScore()) {
+			if (score > highscore.getScore()) {
 				highscore.setScore(score);
 				highscore.setDate(date);
 				highscoreRepository.save(highscore);
-				return new ResponseEntity("You broke your personal best. The global scoreboard has been updated", headers, HttpStatus.OK);
+				return new ResponseEntity("You broke your personal best. The global scoreboard has been updated", headers,
+						HttpStatus.OK);
 			} else {
-				return new ResponseEntity("No updates were made since this was not your personal best",headers, HttpStatus.OK);
-			}			
+				return new ResponseEntity("Score added to your history", headers, HttpStatus.OK);
+			}
 		} else {
-			Highscore newHighscore = new Highscore(score, name, date);			
+			Highscore newHighscore = new Highscore(score, name, date);
 			highscoreRepository.save(newHighscore);
 			return new ResponseEntity("Your score was added to the global score board", headers, HttpStatus.OK);
-		}	
+		}
 	}
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@GetMapping(path="/all")
-	public @ResponseBody ResponseEntity getHighscores(@RequestHeader(value="token") String token) {
-		
-		User user = userRepository.findByToken(token);
-		if(user == null) {
-			throw new ResponseStatusException(
-				HttpStatus.NOT_FOUND, "Could not find user");
-		}
-		
-		User validUser = ValidateToken.validate(user, token);
-		if (validUser==null) {
-			throw new ResponseStatusException(
-					HttpStatus.UNAUTHORIZED, "Unable to validate your token");
-		}
-		
-		userRepository.save(validUser);
-		HttpHeaders headers = Header.setHeaders(validUser);
-		
+	@GetMapping(path = "/all")
+	public @ResponseBody ResponseEntity getHighscores() {
+
 		Iterable<Highscore> highscoreArray = highscoreRepository.findAllByOrderByScoreDesc();
-		return new ResponseEntity(highscoreArray, headers, HttpStatus.OK);		
+		return new ResponseEntity(highscoreArray, HttpStatus.OK);
 	}
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@GetMapping(path="/user")
-	public @ResponseBody ResponseEntity getUserScores(@RequestHeader(value="token") String token) {
-		
+	@GetMapping(path = "/user")
+	public @ResponseBody ResponseEntity getUserScores(@RequestHeader(value = "token") String token) {
+
 		User user = userRepository.findByToken(token);
-		if(user == null) {
-			throw new ResponseStatusException(
-				HttpStatus.NOT_FOUND, "Could not find user");
+		if (user == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find user");
 		}
-		
+
 		User validUser = ValidateToken.validate(user, token);
-		if (validUser==null) {
-			throw new ResponseStatusException(
-					HttpStatus.UNAUTHORIZED, "Unable to validate your token");
+		if (validUser == null) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unable to validate your token");
 		}
-		
+
 		userRepository.save(validUser);
 		HttpHeaders headers = Header.setHeaders(validUser);
-		
+
 		Iterable<AllScores> userScoresArray = allScoresRepository.findByUserIdOrderByScoreDesc(validUser.getId());
-		return new ResponseEntity(userScoresArray, headers, HttpStatus.OK);		
+		return new ResponseEntity(userScoresArray, headers, HttpStatus.OK);
 	}
 }

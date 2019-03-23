@@ -1,16 +1,18 @@
 package nu.borjessons.web.game_backend.helpers;
 
-import nu.borjessons.web.game_backend.exceptions.UnauthorizedUserException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 import nu.borjessons.web.game_backend.models.User;
 
 public class ValidateToken {
-		
-	public static User validate(User user, String token) {		
+
+	public static User validate(User user, String token) {
 		if (user == null) {
-			throw new UnauthorizedUserException("Your token is invalid or missing");
-		}		
-		user.setToken(new Token().generateToken(20));	
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "");
+		}
+		user.setToken(new Token().generateToken(20));
 		return user;
 	}
-	
+
 }
