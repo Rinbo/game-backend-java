@@ -42,18 +42,13 @@ public class UsersController {
 	@PostMapping(path = "/add")
 	public @ResponseBody ResponseEntity<User> addNewUser(@Valid @RequestBody User reqUser) {
 
-		if (userRepository.findByEmail(reqUser.getEmail()) != null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "That Email is already taken");
-		}
-
 		if (userRepository.findByName(reqUser.getName()) != null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "That name is already taken");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "That Name is already taken");
 		}
 
 		User newUser = new User();
 		try {
 			newUser.setName(reqUser.getName().trim());
-			newUser.setEmail(reqUser.getEmail().trim());
 			newUser.setPassword(PasswordUtil.hashPassword(reqUser.getPassword().trim()));
 			newUser.setToken(new Token().generateToken(20));
 			userRepository.save(newUser);
@@ -68,16 +63,15 @@ public class UsersController {
 	public @ResponseBody ResponseEntity<User> signInUser(@Valid @RequestBody LoginObject credentials)
 			throws NoSuchAlgorithmException {
 
-		String email = credentials.getEmail();
+		String name = credentials.getName();
 		String password = credentials.getPassword();
 
 		// Check if User exists
-		if (userRepository.findByEmail(email) == null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-					"We could not find a user matching that email address.");
+		if (userRepository.findByName(name) == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "We could not find a user matching that name.");
 		}
 
-		User storedUser = userRepository.findByEmail(email);
+		User storedUser = userRepository.findByName(name);
 
 		// Check if password matches what is stored in database
 		if (storedUser.checkPassword(PasswordUtil.hashPassword(password))) {
