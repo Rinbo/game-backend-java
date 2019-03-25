@@ -1,7 +1,9 @@
 package nu.borjessons.web.game_backend.controllers;
 
 import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.validation.Valid;
 
@@ -26,6 +28,10 @@ import nu.borjessons.web.game_backend.exceptions.UserNotFoundException;
 import nu.borjessons.web.game_backend.helpers.Header;
 import nu.borjessons.web.game_backend.helpers.PasswordUtil;
 import nu.borjessons.web.game_backend.helpers.Token;
+import nu.borjessons.web.game_backend.models.AllScores;
+import nu.borjessons.web.game_backend.models.AllScoresRepository;
+import nu.borjessons.web.game_backend.models.Highscore;
+import nu.borjessons.web.game_backend.models.HighscoreRepository;
 import nu.borjessons.web.game_backend.models.LoginObject;
 import nu.borjessons.web.game_backend.models.PrunedUser;
 import nu.borjessons.web.game_backend.models.User;
@@ -36,8 +42,11 @@ import nu.borjessons.web.game_backend.models.UserRepository;
 @RequestMapping(path = "/users")
 public class UsersController {
 	@Autowired
-
 	private UserRepository userRepository;
+	@Autowired
+	private HighscoreRepository highscoreRepository;
+	@Autowired
+	private AllScoresRepository allScoresRepository;
 
 	@PostMapping(path = "/add")
 	public @ResponseBody ResponseEntity<User> addNewUser(@Valid @RequestBody User reqUser) {
@@ -52,6 +61,13 @@ public class UsersController {
 			newUser.setPassword(PasswordUtil.hashPassword(reqUser.getPassword().trim()));
 			newUser.setToken(new Token().generateToken(20));
 			userRepository.save(newUser);
+
+			Date now = new Date();
+			Timestamp date = new Timestamp(now.getTime());
+
+			highscoreRepository.save(new Highscore(reqUser.getScore(), newUser.getName(), date));
+			allScoresRepository.save(new AllScores(newUser.getId(), reqUser.getScore(), date));
+
 			HttpHeaders headers = Header.setHeaders(newUser);
 			return new ResponseEntity<User>(newUser, headers, HttpStatus.OK);
 		} catch (Exception e) {
@@ -66,14 +82,12 @@ public class UsersController {
 		String name = credentials.getName();
 		String password = credentials.getPassword();
 
-		// Check if User exists
 		if (userRepository.findByName(name) == null) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "We could not find a user matching that name.");
 		}
 
 		User storedUser = userRepository.findByName(name);
 
-		// Check if password matches what is stored in database
 		if (storedUser.checkPassword(PasswordUtil.hashPassword(password))) {
 			storedUser.setToken(new Token().generateToken(20));
 			userRepository.save(storedUser);
