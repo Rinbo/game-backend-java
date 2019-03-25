@@ -5,6 +5,7 @@ public class LoginObject {
 	private String email;
 	private String password;
 	private String name;
+	private Integer score = null; // Temp score for relaying score from non logged in user
 
 	public String getEmail() {
 		return email;
@@ -29,4 +30,13 @@ public class LoginObject {
 	public void setPassword(String password) {
 		this.password = password;
 	}
+
+	public void setScore(Integer score) {
+		this.score = score;
+	}
+
+	public Integer getScore() {
+		return score;
+	}
+
 }

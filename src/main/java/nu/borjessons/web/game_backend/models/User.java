@@ -29,7 +29,7 @@ public class User {
 	private String password;
 
 	private String token;
-	private Integer score; // Temp score stored here for relaying score from registration and login
+	private Integer score = null; // Temp score stored here for relaying score from registration and login
 
 	public Integer getId() {
 		return id;
