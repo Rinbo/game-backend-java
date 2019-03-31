@@ -79,7 +79,7 @@ public class UsersController {
 	}
 
 	@PutMapping(path = "/update")
-	public @ResponseBody ResponseEntity<User> updateUser(@Valid @RequestBody User reqUser,
+	public @ResponseBody ResponseEntity<User> updateUser(@RequestBody User reqUser,
 			@RequestHeader(value = "token") String token) {
 
 		User user;
@@ -90,6 +90,7 @@ public class UsersController {
 		}
 		user.setEmail(reqUser.getEmail());
 		user.setToken(new Token().generateToken(20));
+		userRepository.save(user);
 		HttpHeaders headers = Header.setHeaders(user);
 		return new ResponseEntity<User>(user, headers, HttpStatus.OK);
 	}
