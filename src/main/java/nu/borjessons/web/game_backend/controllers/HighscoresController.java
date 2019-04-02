@@ -1,7 +1,9 @@
 package nu.borjessons.web.game_backend.controllers;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,6 +26,7 @@ import nu.borjessons.web.game_backend.models.AllScores;
 import nu.borjessons.web.game_backend.models.AllScoresRepository;
 import nu.borjessons.web.game_backend.models.Highscore;
 import nu.borjessons.web.game_backend.models.HighscoreRepository;
+import nu.borjessons.web.game_backend.models.PrunedUser;
 import nu.borjessons.web.game_backend.models.User;
 import nu.borjessons.web.game_backend.models.UserRepository;
 
@@ -81,9 +85,23 @@ public class HighscoresController {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@GetMapping(path = "/all")
-	public @ResponseBody ResponseEntity getHighscores() {
+	public @ResponseBody ResponseEntity getHighscores(@RequestParam String name) {
+		ArrayList<Highscore> highscoreArray = highscoreRepository.findFirst10ByOrderByScoreDesc();
+		if (name != null) {
+			Boolean notFound = true;
+			for (Highscore highscore : highscoreArray) {
+				if (highscore.getName() == name) {
+					notFound = false;
+					break;
+				}
+			}
+			if (notFound) {
+				Highscore userHighscore = highscoreRepository.findByNameAndRank(name);
+				highscoreArray.add(userHighscore);
+				return new ResponseEntity(highscoreArray, HttpStatus.OK);
+			}
 
-		Iterable<Highscore> highscoreArray = highscoreRepository.findAllByOrderByScoreDesc();
+		}
 		return new ResponseEntity(highscoreArray, HttpStatus.OK);
 	}
 
@@ -104,7 +122,7 @@ public class HighscoresController {
 		userRepository.save(validUser);
 		HttpHeaders headers = Header.setHeaders(validUser);
 
-		Iterable<AllScores> userScoresArray = allScoresRepository.findByUserIdOrderByScoreDesc(validUser.getId());
+		Iterable<AllScores> userScoresArray = allScoresRepository.findFirst10ByUserIdOrderByScoreDesc(validUser.getId());
 		return new ResponseEntity(userScoresArray, headers, HttpStatus.OK);
 	}
 }
