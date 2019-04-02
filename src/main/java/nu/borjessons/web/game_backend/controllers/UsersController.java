@@ -117,7 +117,9 @@ public class UsersController {
 				Timestamp date = new Timestamp(now.getTime());
 				allScoresRepository.save(new AllScores(storedUser.getId(), credentials.getScore(), date));
 				Highscore userHighscore = highscoreRepository.findByName(storedUser.getName());
-				if (userHighscore != null && userHighscore.getScore() < credentials.getScore()) {
+				if (userHighscore == null) {
+					highscoreRepository.save(new Highscore(credentials.getScore(), name, date));
+				} else if (userHighscore.getScore() < credentials.getScore()) {
 					userHighscore.setScore(credentials.getScore());
 					userHighscore.setDate(date);
 					highscoreRepository.save(userHighscore);
