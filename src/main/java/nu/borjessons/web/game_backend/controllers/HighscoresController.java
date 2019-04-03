@@ -94,7 +94,8 @@ public class HighscoresController {
 	public @ResponseBody ResponseEntity getHighscores(@RequestParam String name) {
 		ArrayList<Highscore> highscoreArray = highscoreRepository.findFirst10ByOrderByScoreDesc();
 		Highscore userHighscore = highscoreService.getEntryAndPositionOfName(name);
-		if (userHighscore != null && userHighscore.getFlashRank() > 10) {
+		// @TODO try/catch
+		if (userHighscore.getFlashRank() > 10) {
 			highscoreArray.add(userHighscore);
 		}
 		return new ResponseEntity(highscoreArray, HttpStatus.OK);

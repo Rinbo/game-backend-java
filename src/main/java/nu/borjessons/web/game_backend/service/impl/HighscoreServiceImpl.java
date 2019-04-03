@@ -17,17 +17,18 @@ public class HighscoreServiceImpl implements HighscoreService {
 
   @Override
   public Highscore getEntryAndPositionOfName(String name) {
-    ArrayList<Highscore> scoreList = highscoreRepository.findAllByScoreDesc();
+    ArrayList<Highscore> scoreList = highscoreRepository.findAllByOrderByScoreDesc();
     Highscore namedHighscore = new Highscore();
 
     Integer count = 1;
     for (Highscore highscore : scoreList) {
-      if (highscore.getName() == name) {
+      if (highscore.getName().equals(name)) {
         highscore.setFlashRank(count);
         highscoreRepository.save(highscore);
         namedHighscore = highscore;
         break;
       }
+      count += 1;
     }
     return namedHighscore;
   }
