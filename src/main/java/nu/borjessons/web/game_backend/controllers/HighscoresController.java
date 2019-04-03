@@ -29,6 +29,7 @@ import nu.borjessons.web.game_backend.models.HighscoreRepository;
 import nu.borjessons.web.game_backend.models.PrunedUser;
 import nu.borjessons.web.game_backend.models.User;
 import nu.borjessons.web.game_backend.models.UserRepository;
+import nu.borjessons.web.game_backend.service.HighscoreService;
 
 @CrossOrigin
 @RestController
@@ -37,10 +38,15 @@ public class HighscoresController {
 
 	@Autowired
 	HighscoreRepository highscoreRepository;
+
 	@Autowired
 	UserRepository userRepository;
+
 	@Autowired
 	AllScoresRepository allScoresRepository;
+
+	@Autowired
+	HighscoreService highscoreService;
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@PutMapping(path = "/update")
@@ -87,20 +93,9 @@ public class HighscoresController {
 	@GetMapping(path = "/all")
 	public @ResponseBody ResponseEntity getHighscores(@RequestParam String name) {
 		ArrayList<Highscore> highscoreArray = highscoreRepository.findFirst10ByOrderByScoreDesc();
-		if (name != null) {
-			Boolean notFound = true;
-			for (Highscore highscore : highscoreArray) {
-				if (highscore.getName() == name) {
-					notFound = false;
-					break;
-				}
-			}
-			if (notFound) {
-				Highscore userHighscore = highscoreRepository.findByNameAndRank(name);
-				highscoreArray.add(userHighscore);
-				return new ResponseEntity(highscoreArray, HttpStatus.OK);
-			}
-
+		Highscore userHighscore = highscoreService.getEntryAndPositionOfName(name);
+		if (userHighscore != null && userHighscore.getFlashRank() > 10) {
+			highscoreArray.add(userHighscore);
 		}
 		return new ResponseEntity(highscoreArray, HttpStatus.OK);
 	}

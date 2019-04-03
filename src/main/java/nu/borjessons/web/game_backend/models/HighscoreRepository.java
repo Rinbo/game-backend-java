@@ -17,4 +17,6 @@ public interface HighscoreRepository extends JpaRepository<Highscore, Integer> {
 
 	@Query("SELECT hs FROM Highscore hs WHERE hs.name = ?1")
 	Highscore findByNameAndRank(String name);
+
+	ArrayList<Highscore> findAllByScoreDesc();
 }

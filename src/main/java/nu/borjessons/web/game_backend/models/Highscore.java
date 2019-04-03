@@ -9,25 +9,28 @@ import javax.persistence.Id;
 
 @Entity
 public class Highscore {
-	
+
 	public Highscore(Integer score, String name, Timestamp date) {
 		this.score = score;
 		this.name = name;
 		this.date = date;
-	}	
+	}
 
 	@Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
-    private Integer id;
-	
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private Integer id;
+
 	private Integer score;
-	
+
 	private String name;
-	
+
 	private Timestamp date;
-	
-	public Highscore() {}
-	
+
+	private Integer flashRank;
+
+	public Highscore() {
+	}
+
 	public Integer getId() {
 		return id;
 	}
@@ -35,7 +38,7 @@ public class Highscore {
 	public void setId(Integer id) {
 		this.id = id;
 	}
-	
+
 	public Integer getScore() {
 		return score;
 	}
@@ -58,5 +61,13 @@ public class Highscore {
 
 	public void setDate(Timestamp date) {
 		this.date = date;
+	}
+
+	public Integer getFlashRank() {
+		return flashRank;
+	}
+
+	public void setFlashRank(Integer flashRank) {
+		this.flashRank = flashRank;
 	}
 }
