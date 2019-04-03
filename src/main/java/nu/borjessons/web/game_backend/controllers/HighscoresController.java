@@ -91,12 +91,15 @@ public class HighscoresController {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@GetMapping(path = "/all")
-	public @ResponseBody ResponseEntity getHighscores(@RequestParam String name) {
+	public @ResponseBody ResponseEntity getHighscores(@RequestParam(value = "name", required = false) String name) {
 		ArrayList<Highscore> highscoreArray = highscoreRepository.findFirst10ByOrderByScoreDesc();
-		Highscore userHighscore = highscoreService.getEntryAndPositionOfName(name);
-		// @TODO try/catch
-		if (userHighscore.getFlashRank() > 10) {
-			highscoreArray.add(userHighscore);
+		if (name != null) {
+			Highscore userHighscore = highscoreService.getEntryAndPositionOfName(name);
+			if (userHighscore.getName() != null) {
+				if (userHighscore.getFlashRank() > 10) {
+					highscoreArray.add(userHighscore);
+				}
+			}
 		}
 		return new ResponseEntity(highscoreArray, HttpStatus.OK);
 	}
