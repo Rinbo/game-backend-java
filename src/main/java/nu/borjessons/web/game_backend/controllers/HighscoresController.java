@@ -121,7 +121,7 @@ public class HighscoresController {
 		userRepository.save(validUser);
 		HttpHeaders headers = Header.setHeaders(validUser);
 
-		Iterable<AllScores> userScoresArray = allScoresRepository.findFirst10ByUserIdOrderByScoreDesc(validUser.getId());
+		ArrayList<Object> userScoresArray = allScoresRepository.findFirst10ByUserIdOrderByScoreDesc(validUser.getId());
 		return new ResponseEntity(userScoresArray, headers, HttpStatus.OK);
 	}
 }
