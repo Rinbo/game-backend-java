@@ -80,7 +80,7 @@ public class UsersController {
 
 	@PutMapping(path = "/update")
 	public @ResponseBody ResponseEntity<User> updateUser(@RequestBody User reqUser,
-			@RequestHeader(value = "token") String token) {
+			@RequestHeader(value = "token") String token) throws NoSuchAlgorithmException {
 
 		User user;
 		try {
@@ -88,7 +88,21 @@ public class UsersController {
 		} catch (Exception e) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token. Try logging in again");
 		}
-		user.setEmail(reqUser.getEmail());
+
+		if (reqUser.getEmail() != null) {
+			user.setEmail(reqUser.getEmail());
+		}
+
+		if (reqUser.getNewPassword() != null) {
+			String newHashedPassword = PasswordUtil.hashPassword(reqUser.getNewPassword().trim());
+			if (user.checkPassword(PasswordUtil.hashPassword(reqUser.getPassword().trim()))) {
+				user.setPassword(newHashedPassword);
+			} else {
+				throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+						"Unauthorized. Your 'Current Password' was incorrect");
+			}
+		}
+
 		user.setToken(new Token().generateToken(20));
 		userRepository.save(user);
 		HttpHeaders headers = Header.setHeaders(user);

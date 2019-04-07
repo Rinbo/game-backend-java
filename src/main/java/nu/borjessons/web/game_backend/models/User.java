@@ -28,6 +28,8 @@ public class User {
 	@Size(min = 6, message = "Password should have atleast 6 characters")
 	private String password;
 
+	private String newPassword;
+
 	private String token;
 	private Integer score = null; // Temp score stored here for relaying score from registration and login
 
@@ -58,6 +60,16 @@ public class User {
 	@JsonIgnore
 	public String getPassword() {
 		return password;
+	}
+
+	@JsonProperty
+	public void setNewPassword(String newPassword) {
+		this.newPassword = newPassword;
+	}
+
+	@JsonIgnore
+	public String getNewPassword() {
+		return newPassword;
 	}
 
 	@JsonProperty
