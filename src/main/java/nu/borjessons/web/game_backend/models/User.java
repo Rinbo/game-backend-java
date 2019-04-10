@@ -11,6 +11,8 @@ import javax.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.springframework.lang.Nullable;
+
 @Entity
 public class User {
 	@Id
@@ -18,7 +20,7 @@ public class User {
 	private Integer id;
 
 	@NotNull
-	@Size(min = 2, message = "It would be nice if your name consisted of more than one letter")
+	@Size(min = 1, message = "It would be nice if your name consisted of more than one letter")
 	private String name;
 
 	@Email(message = "You must provide a valid email address")
@@ -28,10 +30,12 @@ public class User {
 	@Size(min = 6, message = "Password should have atleast 6 characters")
 	private String password;
 
-	private String newPassword;
-
 	private String token;
+
 	private Integer score = null; // Temp score stored here for relaying score from registration and login
+
+	@Nullable
+	private String newPw;
 
 	public Integer getId() {
 		return id;
@@ -57,24 +61,24 @@ public class User {
 		this.email = email;
 	}
 
+	@JsonProperty
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
 	@JsonIgnore
 	public String getPassword() {
 		return password;
 	}
 
 	@JsonProperty
-	public void setNewPassword(String newPassword) {
-		this.newPassword = newPassword;
+	public void setNewPw(String newPw) {
+		this.newPw = newPw;
 	}
 
 	@JsonIgnore
-	public String getNewPassword() {
-		return newPassword;
-	}
-
-	@JsonProperty
-	public void setPassword(String password) {
-		this.password = password;
+	public String getNewPw() {
+		return newPw;
 	}
 
 	@JsonIgnore

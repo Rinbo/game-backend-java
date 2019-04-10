@@ -81,7 +81,6 @@ public class UsersController {
 	@PutMapping(path = "/update")
 	public @ResponseBody ResponseEntity<User> updateUser(@RequestBody User reqUser,
 			@RequestHeader(value = "token") String token) throws NoSuchAlgorithmException {
-
 		User user;
 		try {
 			user = userRepository.findByToken(token);
@@ -92,9 +91,8 @@ public class UsersController {
 		if (reqUser.getEmail() != null) {
 			user.setEmail(reqUser.getEmail());
 		}
-
-		if (reqUser.getNewPassword() != null) {
-			String newHashedPassword = PasswordUtil.hashPassword(reqUser.getNewPassword().trim());
+		if (reqUser.getNewPw() != null) {
+			String newHashedPassword = PasswordUtil.hashPassword(reqUser.getNewPw().trim());
 			if (user.checkPassword(PasswordUtil.hashPassword(reqUser.getPassword().trim()))) {
 				user.setPassword(newHashedPassword);
 			} else {

@@ -26,7 +26,6 @@ import nu.borjessons.web.game_backend.models.AllScores;
 import nu.borjessons.web.game_backend.models.AllScoresRepository;
 import nu.borjessons.web.game_backend.models.Highscore;
 import nu.borjessons.web.game_backend.models.HighscoreRepository;
-import nu.borjessons.web.game_backend.models.PrunedUser;
 import nu.borjessons.web.game_backend.models.User;
 import nu.borjessons.web.game_backend.models.UserRepository;
 import nu.borjessons.web.game_backend.service.HighscoreService;
@@ -77,6 +76,7 @@ public class HighscoresController {
 				highscore.setScore(score);
 				highscore.setDate(date);
 				highscoreRepository.save(highscore);
+				// @TODO Special message if user was placed as number one
 				return new ResponseEntity("You broke your personal best. The global scoreboard has been updated", headers,
 						HttpStatus.OK);
 			} else {
