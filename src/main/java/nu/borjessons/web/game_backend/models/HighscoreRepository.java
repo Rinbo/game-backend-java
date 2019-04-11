@@ -12,6 +12,8 @@ import nu.borjessons.web.game_backend.models.Highscore;
 public interface HighscoreRepository extends JpaRepository<Highscore, Integer> {
 	Highscore findByName(String name);
 
+	void deleteByName(String name);
+
 	ArrayList<Highscore> findFirst10ByOrderByScoreDesc();
 
 	ArrayList<Highscore> findAllByOrderByScoreDesc();

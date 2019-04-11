@@ -228,20 +228,22 @@ public class UsersController {
 		return "Pong";
 	}
 
-	@DeleteMapping(path = "/{id}")
-	public ResponseEntity<User> deleteUser(@PathVariable int id, @RequestHeader(value = "token") String token) {
-		User storedUser = (User) userRepository.findById(id);
+	@DeleteMapping(path = "/delete")
+	public ResponseEntity<String> deleteUser(@RequestHeader(value = "token") String token) {
+		User storedUser = userRepository.findByToken(token);
 
-		if (!storedUser.isPresent()) {
-			throw new UserNotFoundException("id-" + id);
-		}
-
-		if (!storedUser.getToken().equals(token)) {
+		if (!storedUser.isPresent() || !storedUser.getToken().equals(token)) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unable to validate token. Try logging in again.");
 		}
 
-		userRepository.deleteById(id);
-		return new ResponseEntity<User>(HttpStatus.OK);
+		try {
+
+			allScoresRepository.deleteByUserId(storedUser.getId());
+			userRepository.deleteById(storedUser.getId());
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong server side");
+		}
+		return new ResponseEntity<String>("Account Deleted", HttpStatus.OK);
 	}
 
 }
