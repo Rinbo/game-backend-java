@@ -16,7 +16,9 @@ public interface AllScoresRepository extends CrudRepository<AllScores, Integer> 
 
 	ArrayList<Object> findFirst10ByUserIdOrderByScoreDesc(Integer userId);
 
-		@Modifying
+	ArrayList<AllScores> findByUserIdOrderByScoreDesc(Integer userId);
+
+	@Modifying
 	@Transactional
 	@Query("DELETE FROM AllScores s WHERE s.userId = ?1")
 	public void deleteByUserId(Integer userId);
