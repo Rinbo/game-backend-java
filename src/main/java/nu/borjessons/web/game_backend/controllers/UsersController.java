@@ -178,7 +178,6 @@ public class UsersController {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@GetMapping(path = "/all")
 	public @ResponseBody ResponseEntity getAllUsers(@RequestHeader(value = "token") String token) {
-		// Get the users and send them back but remove password and token first
 
 		User storedUser = userRepository.findByToken(token);
 		if (!storedUser.isPresent()) {
