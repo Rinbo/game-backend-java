@@ -1,3 +1,2 @@
-## Java Backend API enpoint
+## Backend for speed typing app
 
-#### MYSQL Database
