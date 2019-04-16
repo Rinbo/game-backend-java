@@ -66,8 +66,11 @@ public class HighscoresController {
 		userRepository.save(validUser);
 		HttpHeaders headers = Header.setHeaders(validUser);
 
-		allScoresRepository.save(new AllScores(validUser.getId(), score, date));
+		if (score == 0) {
+			return new ResponseEntity("Zero-scores are not saved. Give it another go?", headers, HttpStatus.OK);
+		}
 
+		allScoresRepository.save(new AllScores(validUser.getId(), score, date));
 		String name = validUser.getName();
 		Highscore highscore = highscoreRepository.findByName(name);
 
