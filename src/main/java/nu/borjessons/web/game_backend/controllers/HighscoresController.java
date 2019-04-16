@@ -66,7 +66,7 @@ public class HighscoresController {
 		userRepository.save(validUser);
 		HttpHeaders headers = Header.setHeaders(validUser);
 
-		if (score == 0) {
+		if (score.equals(0)) {
 			return new ResponseEntity("Zero-scores are not saved. Give it another go?", headers, HttpStatus.OK);
 		}
 
