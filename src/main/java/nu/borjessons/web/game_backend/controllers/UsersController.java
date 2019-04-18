@@ -66,7 +66,7 @@ public class UsersController {
 			Date now = new Date();
 			Timestamp date = new Timestamp(now.getTime());
 
-			if (reqUser.getScore() != null) {
+			if (reqUser.getScore() != null && reqUser.getScore() != 0) {
 				highscoreRepository.save(new Highscore(reqUser.getScore(), newUser.getName(), date));
 				allScoresRepository.save(new AllScores(newUser.getId(), reqUser.getScore(), date));
 			}
@@ -124,7 +124,7 @@ public class UsersController {
 			storedUser.setToken(new Token().generateToken(20));
 			userRepository.save(storedUser);
 
-			if (credentials.getScore() != null) {
+			if (credentials.getScore() != null && credentials.getScore() != 0) {
 				Date now = new Date();
 				Timestamp date = new Timestamp(now.getTime());
 				allScoresRepository.save(new AllScores(storedUser.getId(), credentials.getScore(), date));
