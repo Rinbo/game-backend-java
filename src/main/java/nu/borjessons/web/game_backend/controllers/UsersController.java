@@ -91,6 +91,11 @@ public class UsersController {
 		if (reqUser.getEmail() != null) {
 			user.setEmail(reqUser.getEmail());
 		}
+
+		if (reqUser.getSingleSemiColon() != null) {
+			user.setSingleSemiColon(reqUser.getSingleSemiColon());
+		}
+
 		if (reqUser.getNewPw() != null) {
 			String newHashedPassword = PasswordUtil.hashPassword(reqUser.getNewPw().trim());
 			if (user.checkPassword(PasswordUtil.hashPassword(reqUser.getPassword().trim()))) {

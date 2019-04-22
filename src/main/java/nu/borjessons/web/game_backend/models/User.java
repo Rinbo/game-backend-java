@@ -37,8 +37,18 @@ public class User {
 	@Nullable
 	private String newPw;
 
+	private Boolean singleSemiColon = false;
+
 	public Integer getId() {
 		return id;
+	}
+
+	public Boolean getSingleSemiColon() {
+		return singleSemiColon;
+	}
+
+	public void setSingleSemiColon(Boolean singleSemiColon) {
+		this.singleSemiColon = singleSemiColon;
 	}
 
 	public void setId(Integer id) {
