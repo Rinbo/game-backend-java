@@ -74,7 +74,7 @@ public class UsersController {
 			HttpHeaders headers = Header.setHeaders(newUser);
 			return new ResponseEntity<User>(newUser, headers, HttpStatus.OK);
 		} catch (Exception e) {
-			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "That did not work :(. Try Again later");
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "That did not work. Try Again later");
 		}
 	}
 
