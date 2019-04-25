@@ -4,9 +4,11 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.validation.Valid;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -34,9 +36,9 @@ import nu.borjessons.web.game_backend.models.AllScoresRepository;
 import nu.borjessons.web.game_backend.models.Highscore;
 import nu.borjessons.web.game_backend.models.HighscoreRepository;
 import nu.borjessons.web.game_backend.models.LoginObject;
-import nu.borjessons.web.game_backend.models.PrunedUser;
 import nu.borjessons.web.game_backend.models.User;
 import nu.borjessons.web.game_backend.models.UserRepository;
+import nu.borjessons.web.game_backend.models.UserRest;
 
 @CrossOrigin
 @RestController
@@ -179,10 +181,9 @@ public class UsersController {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unable to validate token. Try logging in again.");
 		}
 	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	
 	@GetMapping(path = "/all")
-	public @ResponseBody ResponseEntity getAllUsers(@RequestHeader(value = "token") String token) {
+	public ResponseEntity<List<UserRest>> getAllUsers(@RequestHeader(value = "token") String token) {
 
 		User storedUser = userRepository.findByToken(token);
 		if (!storedUser.isPresent()) {
@@ -192,18 +193,16 @@ public class UsersController {
 		storedUser.setToken(new Token().generateToken(20));
 		userRepository.save(storedUser);
 
-		Iterable<User> userArray = userRepository.findAll();
-		ArrayList<PrunedUser> prunedUsersArray = new ArrayList<PrunedUser>();
-		for (User user : userArray) {
-			PrunedUser prunedUser = new PrunedUser();
-			prunedUser.setId(user.getId());
-			prunedUser.setEmail(user.getEmail());
-			prunedUser.setName(user.getName());
-			prunedUsersArray.add(prunedUser);
+		Iterable<User> users = userRepository.findAll();
+		List<UserRest> returnValue = new ArrayList<>();
+		for (User user : users) {
+			UserRest returnUser = new UserRest();
+			BeanUtils.copyProperties(user, returnUser);
+			returnValue.add(returnUser);
 		}
 
 		HttpHeaders headers = Header.setHeaders(storedUser);
-		return new ResponseEntity(prunedUsersArray, headers, HttpStatus.OK);
+		return new ResponseEntity<List<UserRest>>(returnValue, headers, HttpStatus.OK);
 	}
 
 	@GetMapping(path = "/{id}")
